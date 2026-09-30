@@ -256,7 +256,7 @@ namespace SP10Plus
             Console.WriteLine();
             Console.WriteLine("Это ваш новый образ жизни!");
             Console.WriteLine("30 дней минимум.");
-            Console.WriteLine("Моя почта gleb95052@gmail.com");
+            Console.WriteLine("Моя почта gleb95052@gmail.com пожалуйста по желанию отправте результаты и ФИО и место жительства, может прийти ответ.");
 
             Console.WriteLine("\nНажмите Enter, чтобы выйти...");
             Console.ReadLine();
