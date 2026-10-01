@@ -28,6 +28,7 @@ namespace SP10Plus
             Console.WriteLine("3 - Нечто среднее");
             Console.WriteLine("4 - Скорее про меня");
             Console.WriteLine("5 - Точно про меня\n");
+            Console.WriteLine("Не является медицинским изделием, не ставит диагнозов и носит исключительно ознакомительный характер");
 
             Console.WriteLine("Для шкал 7 и 10 отвечайте от 0 до 4:");
             Console.WriteLine("0 - Никогда, 1 - Редко, 2 - Иногда, 3 - Часто, 4 - Всегда\n");
