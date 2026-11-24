@@ -263,6 +263,98 @@
           <li>Смех — ежедневно (комедии, игры, шутки).</li>
           <li>Пение (хор, караоке, в душе) — 3–4 раза в неделю.</li>
           <li>Питомцы — гладить 10–15 минут в день.</li>
+  let finalData = {};
+
+  function finishTest() {
+    const err = document.getElementById("test-err");
+    const sums = new Map();
+    for (let k = 1; k <= 10; k++) sums.set(k, 0);
+
+    for (let i = 0; i < questions.length; i++) {
+      const el = document.querySelector(`input[name="q${i}"]:checked`);
+      if (!el) { err.textContent = `Ответьте на вопрос №${i + 1}`; return; }
+      const q = questions.at(i);
+      const val = parseInt(el.value, 10);
+      const min = (q.s === 7 || q.s === 10) ? 0 : 1;
+      const max = (q.s === 7 || q.s === 10) ? 4 : 5;
+      const add = q.r ? (max + min - val) : val;
+      sums.set(q.s, sums.get(q.s) + add);
+    }
+
+    let lieYes = 0;
+    for (let i = 0; i < lieQuestions.length; i++) {
+      const el = document.querySelector(`input[name="l${i}"]:checked`);
+      if (!el) { err.textContent = `Ответьте на вопрос достоверности Л${i + 1}`; return; }
+      if (el.value === "1") lieYes++;
+    }
+
+    for (let i = 0; i < sitQuestions.length; i++) {
+      const el = document.querySelector(`input[name="s${i}"]:checked`);
+      if (!el) { err.textContent = `Ответьте на ситуационный вопрос С${i + 1}`; return; }
+      const sq = sitQuestions.at(i);
+      const pts = sq.sc.at(parseInt(el.value, 10));
+      sums.set(sq.s, sums.get(sq.s) + pts);
+    }
+
+    document.getElementById("test-screen").classList.add("hidden");
+    const res = document.getElementById("result-screen");
+    res.classList.remove("hidden");
+    window.scrollTo(0, 0);
+
+    if (lieYes >= 3) {
+      res.innerHTML = `<h2 class="err">⚠ РЕЗУЛЬТАТ НЕДОСТОВЕРЕН (шкала лжи: ${lieYes} из 5)</h2>
+        <p>Рекомендации не выдаются. Пройдите тест заново честно.</p>
+        <button type="button" onclick="location.reload()">Пройти заново</button>`;
+      return;
+    }
+
+    const names = new Array(
+      "", "Доброжелательность", "Экстраверсия", "Нейротизм",
+      "Когнитивная эмпатия", "Эмоциональная эмпатия", "Привязанность (надёжность)",
+      "Социальная тревожность", "Открытость опыту", "Импульсивность", "Текущий стресс"
+    );
+
+    let scoresHtml = "<h2>РЕЗУЛЬТАТЫ</h2><div class='note'>";
+    let scoresText = "";
+    for (let s = 1; s <= 10; s++) {
+      scoresHtml += `<div><b>${names.at(s)}:</b> ${sums.get(s)} баллов</div>`;
+      scoresText += `${names.at(s)}: ${sums.get(s)}; `;
+    }
+    scoresHtml += "</div>";
+
+    const dobro = sums.get(1);
+    const neuro = sums.get(3);
+    const emocEmp = sums.get(5);
+    const privyaz = sums.get(6);
+    const trevoga = sums.get(7);
+    const stress = sums.get(10);
+
+    const okT = trevoga <= 10;
+    const okN = neuro <= 14;
+    const okP = privyaz >= 20;
+    const okS = stress <= 8;
+    const okBase = (dobro >= 20) || (emocEmp >= 18);
+    const inTarget = okT && okN && okP && okS && okBase;
+
+    let verdictHtml = "<h2>ВЕРДИКТ ПРОГРАММЫ</h2>";
+    if (!inTarget) {
+      verdictHtml += `<p class="err">❌ ВЫ НЕ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ.</p>
+        <p>Ваш профиль показывает, что поведенческий протокол сам по себе не даст нужного эффекта:</p><ul>`;
+      if (!okT) verdictHtml += `<li>Тревожность слишком высокая (${trevoga}). Нужно снижать.</li>`;
+      if (!okN) verdictHtml += `<li>Нейротизм слишком высокий (${neuro}). Нужна работа с эмоциями.</li>`;
+      if (!okP) verdictHtml += `<li>Способность к привязанности низкая (${privyaz}). Нужна терапия.</li>`;
+      if (!okS) verdictHtml += `<li>Текущий стресс высокий (${stress}). Сначала антистресс.</li>`;
+      if (!okBase) verdictHtml += `<li>Недостаточно выражена базовая эмпатия и доброжелательность.</li>`;
+      verdictHtml += `</ul><p><b>Рекомендация:</b> обратитесь к специалисту.</p>`;
+    } else {
+      verdictHtml += `<p class="ok">✅ ВЫ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ!</p>
+        <p>У вас есть природная основа для эффекта.</p>
+        <div class="note"><h3>ПРОТОКОЛ УЛУЧШЕНИЯ РАБОТЫ МОЗГА (30 дней)</h3>
+        <ol>
+          <li>Объятия с близкими — 8 раз в день по 20 секунд.</li>
+          <li>Смех — ежедневно (комедии, игры, шутки).</li>
+          <li>Пение (хор, караоке, в душе) — 3–4 раза в неделю.</li>
+          <li>Питомцы — гладить 10–15 минут в день.</li>
           <li>Природа — 30 минут в день (лес, вода, парк).</li>
           <li>Волонтёрство — 1–2 часа в неделю.</li>
           <li>Медитация любящей доброты — 10 минут в день.</li>
@@ -315,58 +407,40 @@
     btn.disabled = true;
     btn.textContent = "Отправка...";
 
-    const payload = {
-      _subject: `СП-10+ | ${finalData.target} | ${city} (${tz}) | Точность: ${rating}/5`,
-      _captcha: "false",
-      Статус: finalData.target,
-      Пол: userGender,
-      Возраст: userAge,
-      Город: city,
-      Часовой_пояс: tz,
-      Точность: rating + " из 5",
-      Комментарий: comment,
-      Баллы: finalData.scores
-    };
-
-    fetch("https://formsubmit.co" + EMAIL, {
+    fetch("https://web3forms.com", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        access_key: "55d80f50-88d8-4350-a74f-662de740f2f1",
+        subject: `СП-10+ | ${finalData.target} | ${city} (${tz}) | Точность: ${rating}/5`,
+        Статус: finalData.target,
+        Пол: userGender,
+        Возраст: userAge,
+        Город: city,
+        Часовой_пояс: tz,
+        Точность: rating + " из 5",
+        Комментарий: comment,
+        Баллы: finalData.scores
+      })
     })
     .then(r => r.json())
     .then(data => {
-      if (data.success === "true" || data.success === true) {
-        showDone(btn);
+      if (data.success) {
+        btn.classList.add("hidden");
+        let doneHtml = `<p class="ok">Спасибо! Ваш отзыв и статистика отправлены.</p>`;
+        if (finalData.inTarget) {
+          doneHtml += `<a class="tg-btn" href="${TG_CHAT_URL}" target="_blank">Перейти в закрытый чат протокола</a>`;
+        }
+        document.getElementById("fb-done").innerHTML = doneHtml;
       } else {
-        fallbackSubmit(payload, btn);
+        btn.disabled = false;
+        btn.textContent = "Ошибка отправки. Попробовать ещё раз";
       }
     })
-    .catch(() => fallbackSubmit(payload, btn));
-  }
-
-  function fallbackSubmit(payload, btn) {
-    const f = document.createElement("form");
-    f.method = "POST";
-    f.action = "https://formsubmit.co" + EMAIL;
-    for (const key in payload) {
-      const inp = document.createElement("input");
-      inp.type = "hidden";
-      inp.name = key;
-      inp.value = payload[key];
-      f.appendChild(inp);
-    }
-    document.body.appendChild(f);
-    f.submit();
-    showDone(btn);
-  }
-
-  function showDone(btn) {
-    btn.classList.add("hidden");
-    let doneHtml = `<p class="ok">Спасибо! Ваш отзыв и статистика отправлены.</p>`;
-    if (finalData.inTarget) {
-      doneHtml += `<a class="tg-btn" href="${TG_CHAT_URL}" target="_blank">Перейти в закрытый Telegram-чат протокола</a>`;
-    }
-    document.getElementById("fb-done").innerHTML = doneHtml;
+    .catch(() => {
+      btn.disabled = false;
+      btn.textContent = "Ошибка сети. Попробовать ещё раз";
+    });
   }
 </script>
 </body>
