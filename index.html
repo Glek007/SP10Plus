@@ -6,17 +6,16 @@
   <title>Тест СП-10+</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #f0f0f0; margin: 0; padding: 16px; line-height: 1.5; }
-    .box { max-width: 680px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    .box { max-width: 680px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 12px; }
     h1, h2, h3 { color: #ffffff; margin-top: 0; }
     .note { background: #2a2a2a; padding: 12px; border-radius: 8px; font-size: 14px; color: #cccccc; margin-bottom: 16px; }
     .q-card { background: #252525; padding: 14px; border-radius: 8px; margin-bottom: 12px; }
     .q-title { font-weight: 600; margin-bottom: 10px; }
     .opts { display: flex; flex-wrap: wrap; gap: 8px; }
     .opts label { background: #333; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; flex: 1; text-align: center; min-width: 44px; }
-    .opts input { margin-right: 4px; }
-    select, input[type="number"], input[type="text"], textarea { width: 100%; box-sizing: border-box; padding: 10px; margin: 6px 0 14px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 16px; }
+    select, input, textarea { width: 100%; box-sizing: border-box; padding: 10px; margin: 6px 0 14px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 16px; }
+    .opts input { width: auto; margin: 0 4px 0 0; }
     button { width: 100%; padding: 14px; background: #2ea44f; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-    button:hover { background: #268a41; }
     .tg-btn { display: block; text-align: center; background: #0088cc; color: #fff; text-decoration: none; padding: 14px; border-radius: 8px; font-weight: bold; margin-top: 14px; }
     .hidden { display: none; }
     .err { color: #ff6b6b; font-weight: bold; margin-top: 10px; }
@@ -36,7 +35,7 @@
     </select>
     <label>Ваш возраст (полных лет):</label>
     <input type="number" id="user-age" min="1" max="120" placeholder="Введите возраст">
-    <button onclick="checkAccess()">Начать тест</button>
+    <button type="button" onclick="checkAccess()">Начать тест</button>
     <div id="gate-msg" class="err"></div>
   </div>
   <div id="test-screen" class="hidden"></div>
@@ -47,7 +46,7 @@
   const EMAIL = "gleb95052@gmail.com";
   let userGender = "", userAge = 0;
 
-  const questions = [
+  const questions = new Array(
     {t:"Я склонен доверять людям, пока они не докажут обратное.",s:1,r:0},
     {t:"Мне нравится помогать другим, даже если это невыгодно.",s:1,r:0},
     {t:"Я стараюсь избегать конфликтов.",s:1,r:1},
@@ -103,20 +102,21 @@
     {t:"Я раздражался по мелочам.",s:10,r:0},
     {t:"Я чувствовал, что не справляюсь.",s:10,r:0},
     {t:"Я чувствовал усталость без причины.",s:10,r:0}
-  ];
+  );
 
-  const sitQuestions = [
-    {t:"С1. Коллега занял вашу идею и выдал за свою. Что вы сделаете?",opts:["1) Промолчу","2) Скажу ему наедине","3) Скажу при всех","4) Пожалуюсь начальнику"],sc:new Array(1,3,2,1),s:1},
-    {t:"С2. Друг просит денег в долг, а вы знаете, что он не вернёт.",opts:["1) Дам","2) Откажу","3) Дам половину","4) Скажу, что нет денег"],sc:new Array(3,1,2,1),s:1},
-    {t:"С3. Вы видите, что незнакомец плачет на улице.",opts:["1) Подойду","2) Пройду мимо","3) Позвоню кому-то","4) Зависит от ситуации"],sc:new Array(3,1,2,2),s:5}
-  ];
-  
-  const sitQuestions = [
-  const sitQuestions = [
-    {t:"С1. Коллега занял вашу идею и выдал за свою. Что вы сделаете?",opts:["1) Промолчу","2) Скажу ему наедине","3) Скажу при всех","4) Пожалуюсь начальнику"],sc:[1,3,2,1],s:1},
-    {t:"С2. Друг просит денег в долг, а вы знаете, что он не вернёт.",opts:["1) Дам","2) Откажу","3) Дам половину","4) Скажу, что нет денег"],sc:[3,1,2,1],s:1},
-    {t:"С3. Вы видите, что незнакомец плачет на улице.",opts:["1) Подойду","2) Пройду мимо","3) Позвоню кому-то","4) Зависит от ситуации"],sc:[3,1,2,2],s:5}
-  ];
+  const lieQuestions = new Array(
+    "Л1. Я никогда не опаздываю.",
+    "Л2. Я никогда никого не осуждал.",
+    "Л3. Я всегда говорю только правду.",
+    "Л4. Я никогда не раздражался на близких.",
+    "Л5. Я всегда выполняю обещания."
+  );
+
+  const sitQuestions = new Array(
+    {t:"С1. Коллега занял вашу идею и выдал за свою. Что вы сделаете?",opts:new Array("1) Промолчу","2) Скажу ему наедине","3) Скажу при всех","4) Пожалуюсь начальнику"),sc:new Array(1,3,2,1),s:1},
+    {t:"С2. Друг просит денег в долг, а вы знаете, что он не вернёт.",opts:new Array("1) Дам","2) Откажу","3) Дам половину","4) Скажу, что нет денег"),sc:new Array(3,1,2,1),s:1},
+    {t:"С3. Вы видите, что незнакомец плачет на улице.",opts:new Array("1) Подойду","2) Пройду мимо","3) Позвоню кому-то","4) Зависит от ситуации"),sc:new Array(3,1,2,2),s:5}
+  );
 
   function checkAccess() {
     userGender = document.getElementById("user-gender").value;
@@ -168,22 +168,25 @@
       html += `</div>`;
     });
 
-    html += `<button onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
+    html += `<button type="button" onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
     document.getElementById("test-screen").innerHTML = html;
   }
     let finalData = {};
 
   function finishTest() {
     const err = document.getElementById("test-err");
-    const sums = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0};
+    const sums = new Map();
+    for (let k = 1; k <= 10; k++) sums.set(k, 0);
 
     for (let i = 0; i < questions.length; i++) {
       const el = document.querySelector(`input[name="q${i}"]:checked`);
       if (!el) { err.textContent = `Ответьте на вопрос №${i + 1}`; return; }
+      const q = questions.at(i);
       const val = parseInt(el.value, 10);
-      const min = (questions[i].s === 7 || questions[i].s === 10) ? 0 : 1;
-      const max = (questions[i].s === 7 || questions[i].s === 10) ? 4 : 5;
-      sums[questions[i].s] += questions[i].r ? (max + min - val) : val;
+      const min = (q.s === 7 || q.s === 10) ? 0 : 1;
+      const max = (q.s === 7 || q.s === 10) ? 4 : 5;
+      const add = q.r ? (max + min - val) : val;
+      sums.set(q.s, sums.get(q.s) + add);
     }
 
     let lieYes = 0;
@@ -196,7 +199,9 @@
     for (let i = 0; i < sitQuestions.length; i++) {
       const el = document.querySelector(`input[name="s${i}"]:checked`);
       if (!el) { err.textContent = `Ответьте на ситуационный вопрос С${i + 1}`; return; }
-      sums[sitQuestions[i].s] += sitQuestions[i].sc[parseInt(el.value, 10)];
+      const sq = sitQuestions.at(i);
+      const pts = sq.sc.at(parseInt(el.value, 10));
+      sums.set(sq.s, sums.get(sq.s) + pts);
     }
 
     document.getElementById("test-screen").classList.add("hidden");
@@ -207,31 +212,46 @@
     if (lieYes >= 3) {
       res.innerHTML = `<h2 class="err">⚠ РЕЗУЛЬТАТ НЕДОСТОВЕРЕН (шкала лжи: ${lieYes} из 5)</h2>
         <p>Рекомендации не выдаются. Пройдите тест заново честно.</p>
-        <button onclick="location.reload()">Пройти заново</button>`;
+        <button type="button" onclick="location.reload()">Пройти заново</button>`;
       return;
     }
 
-    const names = ["","Доброжелательность","Экстраверсия","Нейротизм","Когнитивная эмпатия","Эмоциональная эмпатия","Привязанность (надёжность)","Социальная тревожность","Открытость опыту","Импульсивность","Текущий стресс"];
+    const names = new Array(
+      "", "Доброжелательность", "Экстраверсия", "Нейротизм",
+      "Когнитивная эмпатия", "Эмоциональная эмпатия", "Привязанность (надёжность)",
+      "Социальная тревожность", "Открытость опыту", "Импульсивность", "Текущий стресс"
+    );
+
     let scoresHtml = "<h2>РЕЗУЛЬТАТЫ</h2><div class='note'>";
     let scoresText = "";
     for (let s = 1; s <= 10; s++) {
-      scoresHtml += `<div><b>${names[s]}:</b> ${sums[s]} баллов</div>`;
-      scoresText += `${names[s]}: ${sums[s]}; `;
+      scoresHtml += `<div><b>${names.at(s)}:</b> ${sums.get(s)} баллов</div>`;
+      scoresText += `${names.at(s)}: ${sums.get(s)}; `;
     }
     scoresHtml += "</div>";
 
-    const okT = sums[7] <= 10, okN = sums[3] <= 14, okP = sums[6] >= 20, okS = sums[10] <= 8;
-    const okBase = (sums[1] >= 20) || (sums[5] >= 18);
+    const dobro = sums.get(1);
+    const neuro = sums.get(3);
+    const emocEmp = sums.get(5);
+    const privyaz = sums.get(6);
+    const trevoga = sums.get(7);
+    const stress = sums.get(10);
+
+    const okT = trevoga <= 10;
+    const okN = neuro <= 14;
+    const okP = privyaz >= 20;
+    const okS = stress <= 8;
+    const okBase = (dobro >= 20) || (emocEmp >= 18);
     const inTarget = okT && okN && okP && okS && okBase;
 
     let verdictHtml = "<h2>ВЕРДИКТ ПРОГРАММЫ</h2>";
     if (!inTarget) {
       verdictHtml += `<p class="err">❌ ВЫ НЕ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ.</p>
         <p>Ваш профиль показывает, что поведенческий протокол сам по себе не даст нужного эффекта:</p><ul>`;
-      if (!okT) verdictHtml += `<li>Тревожность слишком высокая (${sums[7]}). Нужно снижать.</li>`;
-      if (!okN) verdictHtml += `<li>Нейротизм слишком высокий (${sums[3]}). Нужна работа с эмоциями.</li>`;
-      if (!okP) verdictHtml += `<li>Способность к привязанности низкая (${sums[6]}). Нужна терапия.</li>`;
-      if (!okS) verdictHtml += `<li>Текущий стресс высокий (${sums[10]}). Сначала антистресс.</li>`;
+      if (!okT) verdictHtml += `<li>Тревожность слишком высокая (${trevoga}). Нужно снижать.</li>`;
+      if (!okN) verdictHtml += `<li>Нейротизм слишком высокий (${neuro}). Нужна работа с эмоциями.</li>`;
+      if (!okP) verdictHtml += `<li>Способность к привязанности низкая (${privyaz}). Нужна терапия.</li>`;
+      if (!okS) verdictHtml += `<li>Текущий стресс высокий (${stress}). Сначала антистресс.</li>`;
       if (!okBase) verdictHtml += `<li>Недостаточно выражена базовая эмпатия и доброжелательность.</li>`;
       verdictHtml += `</ul><p><b>Рекомендация:</b> обратитесь к специалисту.</p>`;
     } else {
@@ -279,7 +299,7 @@
       </select>
       <label>Комментарий (впечатления, что совпало, а что нет):</label>
       <textarea id="fb-comment" rows="3" placeholder="Напишите пару слов..."></textarea>
-      <button id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
+      <button type="button" id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
       <div id="fb-done"></div>`;
 
     res.innerHTML = scoresHtml + verdictHtml + formHtml;
