@@ -1,112 +1,323 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Тест СП-10+ — Социальный профиль</title>
-<style>
-  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 16px; line-height: 1.5; }
-  .wrap { max-width: 720px; margin: 0 auto; }
-  .card { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1px solid #334155; }
-  .card.err { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,.3); }
-  h1, h2 { margin-top: 0; color: #38bdf8; }
-  .opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .opts label { flex: 1 1 45px; text-align: center; background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 8px 4px; cursor: pointer; font-size: 14px; }
-  .opts input { display: none; }
-  .opts label:has(input:checked) { background: #0284c7; border-color: #38bdf8; font-weight: 700; }
-  .sit label { flex: 1 1 100%; text-align: left; padding: 10px 12px; }
-  button { width: 100%; padding: 14px; font-size: 16px; font-weight: 700; border: none; border-radius: 10px; background: #22c55e; color: #052e16; cursor: pointer; margin-top: 10px; }
-  button.sec { background: #38bdf8; color: #082f49; }
-  #res { display: none; }
-  pre { white-space: pre-wrap; background: #0f172a; padding: 12px; border-radius: 8px; font-size: 14px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест СП-10+</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #f0f0f0; margin: 0; padding: 16px; line-height: 1.5; }
+    .box { max-width: 680px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    h1, h2, h3 { color: #ffffff; margin-top: 0; }
+    .note { background: #2a2a2a; padding: 12px; border-radius: 8px; font-size: 14px; color: #cccccc; margin-bottom: 16px; }
+    .q-card { background: #252525; padding: 14px; border-radius: 8px; margin-bottom: 12px; }
+    .q-title { font-weight: 600; margin-bottom: 10px; }
+    .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .opts label { background: #333; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; flex: 1; text-align: center; min-width: 44px; }
+    .opts input { margin-right: 4px; }
+    select, input[type="number"], input[type="text"], textarea { width: 100%; box-sizing: border-box; padding: 10px; margin: 6px 0 14px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 16px; }
+    button { width: 100%; padding: 14px; background: #2ea44f; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    button:hover { background: #268a41; }
+    .tg-btn { display: block; text-align: center; background: #0088cc; color: #fff; text-decoration: none; padding: 14px; border-radius: 8px; font-weight: bold; margin-top: 14px; }
+    .hidden { display: none; }
+    .err { color: #ff6b6b; font-weight: bold; margin-top: 10px; }
+    .ok { color: #51cf66; font-weight: bold; }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>ТЕСТ СП-10+</h1>
-    <p><b>Шкалы 1–6, 8, 9 (от 1 до 5):</b> 1 — Совсем не про меня, 2 — Скорее не про меня, 3 — Нечто среднее, 4 — Скорее про меня, 5 — Точно про меня.</p>
-    <p><b>Шкалы 7 и 10 (от 0 до 4):</b> 0 — Никогда, 1 — Редко, 2 — Иногда, 3 — Часто, 4 — Всегда.</p>
-    <p style="font-size:13px;color:#94a3b8;">Не является медицинским изделием, не предназначено для постановки диагнозов и имеет ознакомительный характер.</p>
+<div class="box">
+  <h1>ТЕСТ СП-10+</h1>
+  <div id="gate-screen">
+    <div class="note">Не является медицинским изделием, не предназначено для постановки диагнозов и имеет исключительно ознакомительный характер.</div>
+    <label>Ваш пол:</label>
+    <select id="user-gender">
+      <option value="">-- Выберите пол --</option>
+      <option value="Мужской">Мужской</option>
+      <option value="Женский">Женский</option>
+    </select>
+    <label>Ваш возраст (полных лет):</label>
+    <input type="number" id="user-age" min="1" max="120" placeholder="Введите возраст">
+    <button onclick="checkAccess()">Начать тест</button>
+    <div id="gate-msg" class="err"></div>
   </div>
-  <div id="quiz"></div>
-  <button onclick="calc()">Узнать результат</button>
-  <div id="res" class="card"></div>
+  <div id="test-screen" class="hidden"></div>
+  <div id="result-screen" class="hidden"></div>
 </div>
 <script>
-const SCALES = Array.of("","Доброжелательность","Экстраверсия","Нейротизм","Когнитивная эмпатия","Эмоциональная эмпатия","Привязанность (надёжность)","Социальная тревожность","Открытость опыту","Импульсивность","Текущий стресс");
-const SIT_SCORES = Array.of(
-  {s:1, v:Array.of(0,1,3,2,1)},
-  {s:1, v:Array.of(0,3,1,2,1)},
-  {s:5, v:Array.of(0,3,1,2,2)}
-);
-let qs = Array.of(), lies = Array.of(), sits = Array.of();
+  const TG_CHAT_URL = "https://t.me";
+  const EMAIL = "gleb95052@gmail.com";
+  let userGender = "", userAge = 0;
 
-fetch('Program.cs').then(r => r.text()).then(code => {
-  for (const m of code.matchAll(/new Question\s*\{\s*Text\s*=\s*"([^"]+)"\s*,\s*Scale\s*=\s*(\d+)\s*,\s*Reversed\s*=\s*(true|false)\s*\}/g))
-    qs.push({text: m.at(1), scale: +m.at(2), rev: m.at(3) === 'true'});
-  for (const m of code.matchAll(/"(Л\d+\.[^"]+)"/g))
-    lies.push(m.at(1));
-  for (const m of code.matchAll(/WriteLine\("(С\d+\.[^"]+)"\);\s*Console\.\s*WriteLine\("([^"]+)"\);/g))
-    sits.push({q: m.at(1), opts: m.at(2).split('\\n').map(x => x.trim())});
+  const questions = [
+    {t:"Я склонен доверять людям, пока они не докажут обратное.",s:1,r:0},
+    {t:"Мне нравится помогать другим, даже если это невыгодно.",s:1,r:0},
+    {t:"Я стараюсь избегать конфликтов.",s:1,r:1},
+    {t:"Я считаю, что большинство людей в основе своей хорошие.",s:1,r:0},
+    {t:"Я легко прощаю обиды.",s:1,r:0},
+    {t:"Мне трудно говорить «нет».",s:1,r:1},
+    {t:"Я чувствую себя заряженным после общения с людьми.",s:2,r:0},
+    {t:"Я легко завожу новые знакомства.",s:2,r:0},
+    {t:"Я часто оказываюсь в центре внимания.",s:2,r:0},
+    {t:"Мне нравится быть в шумных компаниях.",s:2,r:0},
+    {t:"Я говорю громко и уверенно.",s:2,r:0},
+    {t:"Я предпочитаю активный отдых с людьми, а не одиночество.",s:2,r:0},
+    {t:"Я часто чувствую тревогу без причины.",s:3,r:0},
+    {t:"Моё настроение часто меняется.",s:3,r:0},
+    {t:"Я легко расстраиваюсь из-за мелочей.",s:3,r:0},
+    {t:"Я часто чувствую себя уставшим и разбитым.",s:3,r:0},
+    {t:"Мне трудно расслабиться.",s:3,r:0},
+    {t:"Я склонен к самокритике.",s:3,r:0},
+    {t:"Я легко понимаю точку зрения другого человека.",s:4,r:0},
+    {t:"Я могу представить, что чувствует другой, даже если не согласен с ним.",s:4,r:0},
+    {t:"Я часто анализирую мотивы поведения людей.",s:4,r:0},
+    {t:"Мне интересно, почему люди поступают так, а не иначе.",s:4,r:0},
+    {t:"Я замечаю, когда человек говорит одно, а думает другое.",s:4,r:0},
+    {t:"Мне больно видеть, как страдают другие.",s:5,r:0},
+    {t:"Я часто сопереживаю героям фильмов или книг.",s:5,r:0},
+    {t:"Я чувствую чужую радость как свою.",s:5,r:0},
+    {t:"Мне трудно оставаться равнодушным, когда кто-то плачет.",s:5,r:0},
+    {t:"Я часто думаю о чувствах других людей.",s:5,r:0},
+    {t:"Я боюсь, что меня бросят.",s:6,r:1},
+    {t:"Мне трудно полностью довериться партнёру.",s:6,r:1},
+    {t:"Я часто нуждаюсь в подтверждении, что меня любят.",s:6,r:1},
+    {t:"Я чувствую себя некомфортно, когда кто-то хочет слишком близко.",s:6,r:1},
+    {t:"Я легко сближаюсь с людьми.",s:6,r:0},
+    {t:"Мне важно, чтобы партнёр был рядом постоянно.",s:6,r:1},
+    {t:"Нервничаю при разговоре с незнакомцем.",s:7,r:0},
+    {t:"Боюсь, что меня осудят.",s:7,r:0},
+    {t:"Избегаю звонить по телефону.",s:7,r:0},
+    {t:"Мне трудно выступать перед группой.",s:7,r:0},
+    {t:"Чувствую дискомфорт на вечеринках.",s:7,r:0},
+    {t:"Предпочитаю писать, а не говорить.",s:7,r:0},
+    {t:"Я люблю пробовать новое.",s:8,r:0},
+    {t:"Мне нравятся необычные идеи.",s:8,r:0},
+    {t:"Я легко меняю своё мнение под влиянием новых фактов.",s:8,r:0},
+    {t:"Я интересуюсь искусством, философией или наукой.",s:8,r:0},
+    {t:"Я предпочитаю разнообразие, а не рутину.",s:8,r:0},
+    {t:"Я часто делаю что-то, не подумав.",s:9,r:0},
+    {t:"Я легко поддаюсь соблазнам.",s:9,r:0},
+    {t:"Я могу потратить деньги, не планируя.",s:9,r:0},
+    {t:"Я часто меняю решения в последний момент.",s:9,r:0},
+    {t:"Мне трудно ждать.",s:9,r:0},
+    {t:"Я чувствовал напряжение.",s:10,r:0},
+    {t:"Мне было трудно заснуть из-за мыслей.",s:10,r:0},
+    {t:"Я раздражался по мелочам.",s:10,r:0},
+    {t:"Я чувствовал, что не справляюсь.",s:10,r:0},
+    {t:"Я чувствовал усталость без причины.",s:10,r:0}
+  ];
 
-  const box = document.getElementById('quiz');
-  qs.forEach((q, i) => {
-    const min = (q.scale === 7 || q.scale === 10) ? 0 : 1, max = min + 4;
-    let btns = '';
-    for (let v = min; v <= max; v++) btns += `<label><input type="radio" name="q${i}" value="${v}">${v}</label>`;
-    box.innerHTML += `<div class="card" id="cq${i}"><div><b>${i+1}.</b> ${q.text}</div><div class="opts">${btns}</div></div>`;
-  });
-  lies.forEach((t, i) => {
-    box.innerHTML += `<div class="card" id="cl${i}"><div>${t}</div><div class="opts"><label><input type="radio" name="l${i}" value="1">1 — Да</label><label><input type="radio" name="l${i}" value="0">0 — Нет</label></div></div>`;
-  });
-  sits.forEach((s, i) => {
-    const btns = s.opts.map((o, idx) => `<label><input type="radio" name="s${i}" value="${idx+1}">${o}</label>`).join('');
-    box.innerHTML += `<div class="card" id="cs${i}"><div><b>${s.q}</b></div><div class="opts sit">${btns}</div></div>`;
-  });
-});
+  const sitQuestions = [
+    {t:"С1. Коллега занял вашу идею и выдал за свою. Что вы сделаете?",opts:["1) Промолчу","2) Скажу ему наедине","3) Скажу при всех","4) Пожалуюсь начальнику"],sc:new Array(1,3,2,1),s:1},
+    {t:"С2. Друг просит денег в долг, а вы знаете, что он не вернёт.",opts:["1) Дам","2) Откажу","3) Дам половину","4) Скажу, что нет денег"],sc:new Array(3,1,2,1),s:1},
+    {t:"С3. Вы видите, что незнакомец плачет на улице.",opts:["1) Подойду","2) Пройду мимо","3) Позвоню кому-то","4) Зависит от ситуации"],sc:new Array(3,1,2,2),s:5}
+  ];
+  
+  const sitQuestions = [
+  const sitQuestions = [
+    {t:"С1. Коллега занял вашу идею и выдал за свою. Что вы сделаете?",opts:["1) Промолчу","2) Скажу ему наедине","3) Скажу при всех","4) Пожалуюсь начальнику"],sc:[1,3,2,1],s:1},
+    {t:"С2. Друг просит денег в долг, а вы знаете, что он не вернёт.",opts:["1) Дам","2) Откажу","3) Дам половину","4) Скажу, что нет денег"],sc:[3,1,2,1],s:1},
+    {t:"С3. Вы видите, что незнакомец плачет на улице.",opts:["1) Подойду","2) Пройду мимо","3) Позвоню кому-то","4) Зависит от ситуации"],sc:[3,1,2,2],s:5}
+  ];
 
-function calc() {
-  document.querySelectorAll('.err').forEach(e => e.classList.remove('err'));
-  const getVal = (name, cardId) => {
-    const el = document.querySelector(`input[name="${name}"]:checked`);
-    if (!el) { const c = document.getElementById(cardId); c.classList.add('err'); c.scrollIntoView({behavior:'smooth',block:'center'}); throw 0; }
-    return +el.value;
-  };
-  try {
-    const sums = Array(11).fill(0);
-    qs.forEach((q, i) => {
-      const min = (q.scale === 7 || q.scale === 10) ? 0 : 1, max = min + 4;
-      const ans = getVal(`q${i}`, `cq${i}`);
-      sums[q.scale] += q.rev ? (max + min - ans) : ans;
+  function checkAccess() {
+    userGender = document.getElementById("user-gender").value;
+    userAge = parseInt(document.getElementById("user-age").value, 10);
+    const msg = document.getElementById("gate-msg");
+
+    if (!userGender || isNaN(userAge)) {
+      msg.textContent = "Пожалуйста, выберите пол и укажите возраст.";
+      return;
+    }
+    const okMale = (userGender === "Мужской" && userAge >= 9 && userAge <= 15);
+    const okFemale = (userGender === "Женский" && userAge >= 8 && userAge <= 14);
+
+    if (!okMale && !okFemale) {
+      msg.textContent = "К сожалению, методика откалибрована только для мужчин 9–15 лет и женщин 8–14 лет.";
+      return;
+    }
+    document.getElementById("gate-screen").classList.add("hidden");
+    document.getElementById("test-screen").classList.remove("hidden");
+    renderTest();
+  }
+
+  function renderTest() {
+    let html = `<div class="note"><b>Инструкция:</b><br>Шкалы 1–6, 8, 9: от 1 (совсем не про меня) до 5 (точно про меня).<br>Шкалы 7 и 10: от 0 (никогда) до 4 (всегда).</div>`;
+    questions.forEach((q, i) => {
+      const min = (q.s === 7 || q.s === 10) ? 0 : 1;
+      const max = (q.s === 7 || q.s === 10) ? 4 : 5;
+      html += `<div class="q-card"><div class="q-title">${i + 1}. ${q.t}</div><div class="opts">`;
+      for (let v = min; v <= max; v++) {
+        html += `<label><input type="radio" name="q${i}" value="${v}">${v}</label>`;
+      }
+      html += `</div></div>`;
     });
+
+    html += `<h3>Шкала достоверности (1 — Да, 0 — Нет)</h3>`;
+    lieQuestions.forEach((lq, i) => {
+      html += `<div class="q-card"><div class="q-title">${lq}</div><div class="opts">
+        <label><input type="radio" name="l${i}" value="1">1 (Да)</label>
+        <label><input type="radio" name="l${i}" value="0">0 (Нет)</label>
+      </div></div>`;
+    });
+
+    html += `<h3>Ситуационные вопросы</h3>`;
+    sitQuestions.forEach((sq, i) => {
+      html += `<div class="q-card"><div class="q-title">${sq.t}</div>`;
+      sq.opts.forEach((opt, idx) => {
+        html += `<div style="margin:6px 0;"><label><input type="radio" name="s${i}" value="${idx}"> ${opt}</label></div>`;
+      });
+      html += `</div>`;
+    });
+
+    html += `<button onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
+    document.getElementById("test-screen").innerHTML = html;
+  }
+    let finalData = {};
+
+  function finishTest() {
+    const err = document.getElementById("test-err");
+    const sums = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0};
+
+    for (let i = 0; i < questions.length; i++) {
+      const el = document.querySelector(`input[name="q${i}"]:checked`);
+      if (!el) { err.textContent = `Ответьте на вопрос №${i + 1}`; return; }
+      const val = parseInt(el.value, 10);
+      const min = (questions[i].s === 7 || questions[i].s === 10) ? 0 : 1;
+      const max = (questions[i].s === 7 || questions[i].s === 10) ? 4 : 5;
+      sums[questions[i].s] += questions[i].r ? (max + min - val) : val;
+    }
+
     let lieYes = 0;
-    lies.forEach((_, i) => { if (getVal(`l${i}`, `cl${i}`) === 1) lieYes++; });
-    sits.forEach((_, i) => { sums[SIT_SCORES.at(i).s] += SIT_SCORES.at(i).v.at(getVal(`s${i}`, `cs${i}`)); });
+    for (let i = 0; i < lieQuestions.length; i++) {
+      const el = document.querySelector(`input[name="l${i}"]:checked`);
+      if (!el) { err.textContent = `Ответьте на вопрос достоверности Л${i + 1}`; return; }
+      if (el.value === "1") lieYes++;
+    }
 
-    const res = document.getElementById('res');
-    res.style.display = 'block';
+    for (let i = 0; i < sitQuestions.length; i++) {
+      const el = document.querySelector(`input[name="s${i}"]:checked`);
+      if (!el) { err.textContent = `Ответьте на ситуационный вопрос С${i + 1}`; return; }
+      sums[sitQuestions[i].s] += sitQuestions[i].sc[parseInt(el.value, 10)];
+    }
+
+    document.getElementById("test-screen").classList.add("hidden");
+    const res = document.getElementById("result-screen");
+    res.classList.remove("hidden");
+    window.scrollTo(0, 0);
+
     if (lieYes >= 3) {
-      res.innerHTML = `<h2>⚠ РЕЗУЛЬТАТ НЕДОСТОВЕРЕН</h2><p>Шкала лжи: ${lieYes} из 5. Пройдите тест заново честно.</p>`;
-      res.scrollIntoView({behavior:'smooth'}); return;
+      res.innerHTML = `<h2 class="err">⚠ РЕЗУЛЬТАТ НЕДОСТОВЕРЕН (шкала лжи: ${lieYes} из 5)</h2>
+        <p>Рекомендации не выдаются. Пройдите тест заново честно.</p>
+        <button onclick="location.reload()">Пройти заново</button>`;
+      return;
     }
-    let report = 'РЕЗУЛЬТАТЫ ТЕСТА СП-10+:\n';
-    for (let s = 1; s <= 10; s++) report += `${SCALES.at(s)}: ${sums.at(s)} баллов\n`;
 
-    const ok = sums.at(7) <= 10 && sums.at(3) <= 14 && sums.at(6) >= 20 && sums.at(10) <= 8 && (sums.at(1) >= 20 || sums.at(5) >= 18);
-    if (!ok) {
-      let reasons = '';
-      if (sums.at(7) > 10) reasons += `<li>Тревожность слишком высокая (${sums.at(7)}). Нужно снижать.</li>`;
-      if (sums.at(3) > 14) reasons += `<li>Нейротизм слишком высокий (${sums.at(3)}). Нужна работа с эмоциями.</li>`;
-      if (sums.at(6) < 20) reasons += `<li>Способность к привязанности низкая (${sums.at(6)}). Нужна терапия.</li>`;
-      if (sums.at(10) > 8) reasons += `<li>Текущий стресс высокий (${sums.at(10)}). Сначала антистресс.</li>`;
-      res.innerHTML = `<h2>❌ ВЫ НЕ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ</h2><pre>${report}</pre><ul>${reasons}</ul><p>Рекомендация: обратитесь к специалисту.</p><button class="sec" onclick="navigator.clipboard.writeText(document.querySelector('#res pre').innerText)">Скопировать результат</button>`;
-    } else {
-      res.innerHTML = `<h2>✅ ВЫ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ!</h2><pre>${report}</pre><h3>ПРОТОКОЛ НА 30 ДНЕЙ:</h3><ol><li>Объятия с близкими — 8 раз в день по 20 секунд.</li><li>Смех — ежедневно.</li><li>Пение — 3-4 раза в неделю.</li><li>Питомцы — гладить 10-15 минут в день.</li><li>Природа — 30 минут в день.</li><li>Волонтёрство — 1-2 часа в неделю.</li><li>Медитация любящей доброты — 10 минут в день.</li><li>Сон — 7-9 часов, ложиться до 23:00.</li></ol><p>Почта для отправки результатов (по желанию): <b>gleb95052@gmail.com</b></p><button class="sec" onclick="navigator.clipboard.writeText(document.querySelector('#res pre').innerText)">Скопировать результат</button>`;
+    const names = ["","Доброжелательность","Экстраверсия","Нейротизм","Когнитивная эмпатия","Эмоциональная эмпатия","Привязанность (надёжность)","Социальная тревожность","Открытость опыту","Импульсивность","Текущий стресс"];
+    let scoresHtml = "<h2>РЕЗУЛЬТАТЫ</h2><div class='note'>";
+    let scoresText = "";
+    for (let s = 1; s <= 10; s++) {
+      scoresHtml += `<div><b>${names[s]}:</b> ${sums[s]} баллов</div>`;
+      scoresText += `${names[s]}: ${sums[s]}; `;
     }
-    res.scrollIntoView({behavior:'smooth'});
-  } catch(e) {}
-}
+    scoresHtml += "</div>";
+
+    const okT = sums[7] <= 10, okN = sums[3] <= 14, okP = sums[6] >= 20, okS = sums[10] <= 8;
+    const okBase = (sums[1] >= 20) || (sums[5] >= 18);
+    const inTarget = okT && okN && okP && okS && okBase;
+
+    let verdictHtml = "<h2>ВЕРДИКТ ПРОГРАММЫ</h2>";
+    if (!inTarget) {
+      verdictHtml += `<p class="err">❌ ВЫ НЕ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ.</p>
+        <p>Ваш профиль показывает, что поведенческий протокол сам по себе не даст нужного эффекта:</p><ul>`;
+      if (!okT) verdictHtml += `<li>Тревожность слишком высокая (${sums[7]}). Нужно снижать.</li>`;
+      if (!okN) verdictHtml += `<li>Нейротизм слишком высокий (${sums[3]}). Нужна работа с эмоциями.</li>`;
+      if (!okP) verdictHtml += `<li>Способность к привязанности низкая (${sums[6]}). Нужна терапия.</li>`;
+      if (!okS) verdictHtml += `<li>Текущий стресс высокий (${sums[10]}). Сначала антистресс.</li>`;
+      if (!okBase) verdictHtml += `<li>Недостаточно выражена базовая эмпатия и доброжелательность.</li>`;
+      verdictHtml += `</ul><p><b>Рекомендация:</b> обратитесь к специалисту.</p>`;
+    } else {
+      verdictHtml += `<p class="ok">✅ ВЫ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ!</p>
+        <p>У вас есть природная основа для эффекта.</p>
+        <div class="note"><h3>ПРОТОКОЛ УЛУЧШЕНИЯ РАБОТЫ МОЗГА (30 дней)</h3>
+        <ol>
+          <li>Объятия с близкими — 8 раз в день по 20 секунд.</li>
+          <li>Смех — ежедневно (комедии, игры, шутки).</li>
+          <li>Пение (хор, караоке, в душе) — 3–4 раза в неделю.</li>
+          <li>Питомцы — гладить 10–15 минут в день.</li>
+          <li>Природа — 30 минут в день (лес, вода, парк).</li>
+          <li>Волонтёрство — 1–2 часа в неделю.</li>
+          <li>Медитация любящей доброты — 10 минут в день.</li>
+          <li>Сон — 7–9 часов, ложиться до 23:00.</li>
+        </ol>
+        <b>Это ваш новый образ жизни! 30 дней минимум.</b></div>`;
+    }
+
+    finalData = { target: inTarget ? "ЦЕЛЕВАЯ" : "НЕ ЦЕЛЕВАЯ", inTarget, scores: scoresText };
+
+    const formHtml = `<hr style="border-color:#333; margin:20px 0;">
+      <h3>Обратная связь по тесту (анонимно)</h3>
+      <label>Насколько точным оказался результат?</label>
+      <select id="fb-rating">
+        <option value="5">5 — Совсем точно</option>
+        <option value="4">4 — Скорее точно</option>
+        <option value="3">3 — Средне</option>
+        <option value="2">2 — Скорее не точно</option>
+        <option value="1">1 — Совсем не точно</option>
+      </select>
+      <label>Ваш город:</label>
+      <input type="text" id="fb-city" placeholder="Например: Москва">
+      <label>Часовой пояс:</label>
+      <select id="fb-tz">
+        <option value="UTC+2">UTC+2 (Калининград)</option>
+        <option value="UTC+3" selected>UTC+3 (Москва)</option>
+        <option value="UTC+4">UTC+4 (Самара)</option>
+        <option value="UTC+5">UTC+5 (Екатеринбург)</option>
+        <option value="UTC+6">UTC+6 (Омск)</option>
+        <option value="UTC+7">UTC+7 (Красноярск / Новосибирск)</option>
+        <option value="UTC+8">UTC+8 (Иркутск)</option>
+        <option value="UTC+9">UTC+9 (Якутск)</option>
+        <option value="UTC+10">UTC+10 (Владивосток)</option>
+      </select>
+      <label>Комментарий (впечатления, что совпало, а что нет):</label>
+      <textarea id="fb-comment" rows="3" placeholder="Напишите пару слов..."></textarea>
+      <button id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
+      <div id="fb-done"></div>`;
+
+    res.innerHTML = scoresHtml + verdictHtml + formHtml;
+  }
+
+  function sendFeedback() {
+    const btn = document.getElementById("send-btn");
+    const rating = document.getElementById("fb-rating").value;
+    const city = document.getElementById("fb-city").value.trim() || "Не указан";
+    const tz = document.getElementById("fb-tz").value;
+    const comment = document.getElementById("fb-comment").value.trim() || "Без комментария";
+
+    btn.disabled = true;
+    btn.textContent = "Отправка...";
+
+    fetch("https://formsubmit.co" + EMAIL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        _subject: `СП-10+ | ${finalData.target} | ${city} (${tz}) | Точность: ${rating}/5`,
+        Статус: finalData.target,
+        Пол: userGender,
+        Возраст: userAge,
+        Город: city,
+        Часовой_пояс: tz,
+        Точность: rating + " из 5",
+        Комментарий: comment,
+        Баллы: finalData.scores
+      })
+    }).finally(() => {
+      btn.classList.add("hidden");
+      let doneHtml = `<p class="ok">Спасибо! Ваш отзыв и статистика отправлены.</p>`;
+      if (finalData.inTarget) {
+        doneHtml += `<a class="tg-btn" href="${TG_CHAT_URL}" target="_blank">Перейти в закрытый Telegram-чат протокола</a>`;
+      }
+      document.getElementById("fb-done").innerHTML = doneHtml;
+    });
+  }
 </script>
 </body>
 </html>
