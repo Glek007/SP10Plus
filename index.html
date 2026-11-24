@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест СП-10+ — Социальный профиль</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 16px; line-height: 1.5; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .card { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1px solid #334155; }
+  .card.err { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239,68,68,.3); }
+  h1, h2 { margin-top: 0; color: #38bdf8; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .opts label { flex: 1 1 45px; text-align: center; background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: 8px 4px; cursor: pointer; font-size: 14px; }
+  .opts input { display: none; }
+  .opts label:has(input:checked) { background: #0284c7; border-color: #38bdf8; font-weight: 700; }
+  .sit label { flex: 1 1 100%; text-align: left; padding: 10px 12px; }
+  button { width: 100%; padding: 14px; font-size: 16px; font-weight: 700; border: none; border-radius: 10px; background: #22c55e; color: #052e16; cursor: pointer; margin-top: 10px; }
+  button.sec { background: #38bdf8; color: #082f49; }
+  #res { display: none; }
+  pre { white-space: pre-wrap; background: #0f172a; padding: 12px; border-radius: 8px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>ТЕСТ СП-10+</h1>
+    <p><b>Шкалы 1–6, 8, 9 (от 1 до 5):</b> 1 — Совсем не про меня, 2 — Скорее не про меня, 3 — Нечто среднее, 4 — Скорее про меня, 5 — Точно про меня.</p>
+    <p><b>Шкалы 7 и 10 (от 0 до 4):</b> 0 — Никогда, 1 — Редко, 2 — Иногда, 3 — Часто, 4 — Всегда.</p>
+    <p style="font-size:13px;color:#94a3b8;">Не является медицинским изделием, не предназначено для постановки диагнозов и имеет ознакомительный характер.</p>
+  </div>
+  <div id="quiz"></div>
+  <button onclick="calc()">Узнать результат</button>
+  <div id="res" class="card"></div>
+</div>
+<script>
+const SCALES = Array.of("","Доброжелательность","Экстраверсия","Нейротизм","Когнитивная эмпатия","Эмоциональная эмпатия","Привязанность (надёжность)","Социальная тревожность","Открытость опыту","Импульсивность","Текущий стресс");
+const SIT_SCORES = Array.of(
+  {s:1, v:Array.of(0,1,3,2,1)},
+  {s:1, v:Array.of(0,3,1,2,1)},
+  {s:5, v:Array.of(0,3,1,2,2)}
+);
+let qs = Array.of(), lies = Array.of(), sits = Array.of();
+
+fetch('Program.cs').then(r => r.text()).then(code => {
+  for (const m of code.matchAll(/new Question\s*\{\s*Text\s*=\s*"([^"]+)"\s*,\s*Scale\s*=\s*(\d+)\s*,\s*Reversed\s*=\s*(true|false)\s*\}/g))
+    qs.push({text: m.at(1), scale: +m.at(2), rev: m.at(3) === 'true'});
+  for (const m of code.matchAll(/"(Л\d+\.[^"]+)"/g))
+    lies.push(m.at(1));
+  for (const m of code.matchAll(/WriteLine\("(С\d+\.[^"]+)"\);\s*Console\.\s*WriteLine\("([^"]+)"\);/g))
+    sits.push({q: m.at(1), opts: m.at(2).split('\\n').map(x => x.trim())});
+
+  const box = document.getElementById('quiz');
+  qs.forEach((q, i) => {
+    const min = (q.scale === 7 || q.scale === 10) ? 0 : 1, max = min + 4;
+    let btns = '';
+    for (let v = min; v <= max; v++) btns += `<label><input type="radio" name="q${i}" value="${v}">${v}</label>`;
+    box.innerHTML += `<div class="card" id="cq${i}"><div><b>${i+1}.</b> ${q.text}</div><div class="opts">${btns}</div></div>`;
+  });
+  lies.forEach((t, i) => {
+    box.innerHTML += `<div class="card" id="cl${i}"><div>${t}</div><div class="opts"><label><input type="radio" name="l${i}" value="1">1 — Да</label><label><input type="radio" name="l${i}" value="0">0 — Нет</label></div></div>`;
+  });
+  sits.forEach((s, i) => {
+    const btns = s.opts.map((o, idx) => `<label><input type="radio" name="s${i}" value="${idx+1}">${o}</label>`).join('');
+    box.innerHTML += `<div class="card" id="cs${i}"><div><b>${s.q}</b></div><div class="opts sit">${btns}</div></div>`;
+  });
+});
+
+function calc() {
+  document.querySelectorAll('.err').forEach(e => e.classList.remove('err'));
+  const getVal = (name, cardId) => {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    if (!el) { const c = document.getElementById(cardId); c.classList.add('err'); c.scrollIntoView({behavior:'smooth',block:'center'}); throw 0; }
+    return +el.value;
+  };
+  try {
+    const sums = Array(11).fill(0);
+    qs.forEach((q, i) => {
+      const min = (q.scale === 7 || q.scale === 10) ? 0 : 1, max = min + 4;
+      const ans = getVal(`q${i}`, `cq${i}`);
+      sums[q.scale] += q.rev ? (max + min - ans) : ans;
+    });
+    let lieYes = 0;
+    lies.forEach((_, i) => { if (getVal(`l${i}`, `cl${i}`) === 1) lieYes++; });
+    sits.forEach((_, i) => { sums[SIT_SCORES.at(i).s] += SIT_SCORES.at(i).v.at(getVal(`s${i}`, `cs${i}`)); });
+
+    const res = document.getElementById('res');
+    res.style.display = 'block';
+    if (lieYes >= 3) {
+      res.innerHTML = `<h2>⚠ РЕЗУЛЬТАТ НЕДОСТОВЕРЕН</h2><p>Шкала лжи: ${lieYes} из 5. Пройдите тест заново честно.</p>`;
+      res.scrollIntoView({behavior:'smooth'}); return;
+    }
+    let report = 'РЕЗУЛЬТАТЫ ТЕСТА СП-10+:\n';
+    for (let s = 1; s <= 10; s++) report += `${SCALES.at(s)}: ${sums.at(s)} баллов\n`;
+
+    const ok = sums.at(7) <= 10 && sums.at(3) <= 14 && sums.at(6) >= 20 && sums.at(10) <= 8 && (sums.at(1) >= 20 || sums.at(5) >= 18);
+    if (!ok) {
+      let reasons = '';
+      if (sums.at(7) > 10) reasons += `<li>Тревожность слишком высокая (${sums.at(7)}). Нужно снижать.</li>`;
+      if (sums.at(3) > 14) reasons += `<li>Нейротизм слишком высокий (${sums.at(3)}). Нужна работа с эмоциями.</li>`;
+      if (sums.at(6) < 20) reasons += `<li>Способность к привязанности низкая (${sums.at(6)}). Нужна терапия.</li>`;
+      if (sums.at(10) > 8) reasons += `<li>Текущий стресс высокий (${sums.at(10)}). Сначала антистресс.</li>`;
+      res.innerHTML = `<h2>❌ ВЫ НЕ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ</h2><pre>${report}</pre><ul>${reasons}</ul><p>Рекомендация: обратитесь к специалисту.</p><button class="sec" onclick="navigator.clipboard.writeText(document.querySelector('#res pre').innerText)">Скопировать результат</button>`;
+    } else {
+      res.innerHTML = `<h2>✅ ВЫ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ!</h2><pre>${report}</pre><h3>ПРОТОКОЛ НА 30 ДНЕЙ:</h3><ol><li>Объятия с близкими — 8 раз в день по 20 секунд.</li><li>Смех — ежедневно.</li><li>Пение — 3-4 раза в неделю.</li><li>Питомцы — гладить 10-15 минут в день.</li><li>Природа — 30 минут в день.</li><li>Волонтёрство — 1-2 часа в неделю.</li><li>Медитация любящей доброты — 10 минут в день.</li><li>Сон — 7-9 часов, ложиться до 23:00.</li></ol><p>Почта для отправки результатов (по желанию): <b>gleb95052@gmail.com</b></p><button class="sec" onclick="navigator.clipboard.writeText(document.querySelector('#res pre').innerText)">Скопировать результат</button>`;
+    }
+    res.scrollIntoView({behavior:'smooth'});
+  } catch(e) {}
+}
+</script>
+</body>
+</html>
