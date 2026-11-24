@@ -315,29 +315,58 @@
     btn.disabled = true;
     btn.textContent = "Отправка...";
 
+    const payload = {
+      _subject: `СП-10+ | ${finalData.target} | ${city} (${tz}) | Точность: ${rating}/5`,
+      _captcha: "false",
+      Статус: finalData.target,
+      Пол: userGender,
+      Возраст: userAge,
+      Город: city,
+      Часовой_пояс: tz,
+      Точность: rating + " из 5",
+      Комментарий: comment,
+      Баллы: finalData.scores
+    };
+
     fetch("https://formsubmit.co" + EMAIL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        _subject: `СП-10+ | ${finalData.target} | ${city} (${tz}) | Точность: ${rating}/5`,
-        Статус: finalData.target,
-        Пол: userGender,
-        Возраст: userAge,
-        Город: city,
-        Часовой_пояс: tz,
-        Точность: rating + " из 5",
-        Комментарий: comment,
-        Баллы: finalData.scores
-      })
-    }).finally(() => {
-      btn.classList.add("hidden");
-      let doneHtml = `<p class="ok">Спасибо! Ваш отзыв и статистика отправлены.</p>`;
-      if (finalData.inTarget) {
-        doneHtml += `<a class="tg-btn" href="${TG_CHAT_URL}" target="_blank">Перейти в закрытый Telegram-чат протокола</a>`;
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success === "true" || data.success === true) {
+        showDone(btn);
+      } else {
+        fallbackSubmit(payload, btn);
       }
-      document.getElementById("fb-done").innerHTML = doneHtml;
-    });
+    })
+    .catch(() => fallbackSubmit(payload, btn));
   }
-</script>
-</body>
-</html>
+
+  function fallbackSubmit(payload, btn) {
+    const f = document.createElement("form");
+    f.method = "POST";
+    f.action = "https://formsubmit.co/" + EMAIL;
+    f.target = "_blank";
+    for (const key in payload) {
+      const inp = document.createElement("input");
+      inp.type = "hidden";
+      inp.name = key;
+      inp.value = payload[key];
+      f.appendChild(inp);
+    }
+    document.body.appendChild(f);
+    f.submit();
+    showDone(btn);
+  }
+
+  function showDone(btn) {
+    btn.classList.add("hidden");
+    let doneHtml = `<p class="ok">Спасибо! Ваш отзыв и статистика отправлены.</p>`;
+    if (finalData.inTarget) {
+      doneHtml += `<a class="tg-btn" href="${TG_CHAT_URL}" target="_blank">Перейти в закрытый Telegram-чат протокола</a>`;
+    }
+    document.getElementById("fb-done").innerHTML = doneHtml;
+  }
+  
