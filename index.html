@@ -41,6 +41,12 @@
     .hidden { display: none; }
     .err { color: #ff6b6b; font-weight: bold; margin-top: 10px; }
     .ok { color: #51cf66; font-weight: bold; }
+    
+    /* --- Стили для кнопок "Поделиться" --- */
+    .share-btn { width: auto; flex: 1; padding: 12px; font-size: 14px; margin-top: 0; border-radius: 8px; }
+    .native-btn { background: #4CAF50; }
+    .tg-btn-share { background: #0088cc; }
+    .vk-btn-share { background: #0077FF; }
   </style>
 </head>
 <body>
@@ -186,7 +192,8 @@
     html += `<button type="button" onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
     document.getElementById("test-screen").innerHTML = html;
   }
-    let finalData = {};
+  
+  let finalData = {};
 
   function finishTest() {
     const err = document.getElementById("test-err");
@@ -288,6 +295,16 @@
 
     finalData = { target: inTarget ? "ЦЕЛЕВАЯ" : "НЕ ЦЕЛЕВАЯ", inTarget, scores: scoresText };
 
+    // --- БЛОК КНОПОК "ПОДЕЛИТЬСЯ" ---
+    const shareHtml = `<hr style="border-color:#333; margin:20px 0;">
+      <h3>Поделиться тестом</h3>
+      <p style="font-size: 14px; color: #ccc;">Расскажите друзьям о тесте — это поможет проекту!</p>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+        <button type="button" onclick="doNativeShare()" class="share-btn native-btn">Поделиться</button>
+        <button type="button" onclick="shareTelegram()" class="share-btn tg-btn-share">Telegram</button>
+        <button type="button" onclick="shareVK()" class="share-btn vk-btn-share">ВКонтакте</button>
+      </div>`;
+
     const formHtml = `<hr style="border-color:#333; margin:20px 0;">
       <h3>Обратная связь по тесту (анонимно)</h3>
       <label>Насколько точным оказался результат?</label>
@@ -317,7 +334,8 @@
       <button type="button" id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
       <div id="fb-done"></div>`;
 
-    res.innerHTML = scoresHtml + verdictHtml + formHtml;
+    // Собираем всё вместе (обрати внимание на shareHtml в середине)
+    res.innerHTML = scoresHtml + verdictHtml + shareHtml + formHtml;
   }
 
   function sendFeedback() {
@@ -364,6 +382,34 @@
       btn.disabled = false;
       btn.textContent = "Ошибка сети. Попробовать ещё раз";
     });
+  }
+
+  // --- ФУНКЦИИ ДЛЯ РАБОТЫ КНОПОК "ПОДЕЛИТЬСЯ" ---
+  const testUrl = 'https://glek007.github.io/SP10Plus/';
+  const testText = 'Прошел тест СП-10+! Интересно было узнать свой результат. А ты?';
+
+  function doNativeShare() {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Тест СП-10+',
+        text: testText,
+        url: testUrl
+      }).catch((err) => console.log('Ошибка шеринга:', err));
+    } else {
+      navigator.clipboard.writeText(testUrl)
+        .then(() => alert('Ссылка скопирована! Отправь её другу.'))
+        .catch(() => alert('Не удалось скопировать. Вот ссылка: ' + testUrl));
+    }
+  }
+
+  function shareTelegram() {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(testUrl)}&text=${encodeURIComponent(testText)}`;
+    window.open(url, '_blank');
+  }
+
+  function shareVK() {
+    const url = `https://vk.com/share.php?url=${encodeURIComponent(testUrl)}&title=${
+    window.open(url, '_blank');
   }
 </script>
 </body>
