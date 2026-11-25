@@ -123,22 +123,16 @@
     userAge = parseInt(document.getElementById("user-age").value, 10);
     const msg = document.getElementById("gate-msg");
 
-    if (!userGender || isNaN(userAge)) {
-      msg.textContent = "Пожалуйста, выберите пол и укажите возраст.";
+    if (!userGender || isNaN(userAge) || userAge < 1 || userAge > 120) {
+      msg.textContent = "Пожалуйста, выберите пол и укажите корректный возраст.";
       return;
     }
-    const okMale = (userGender === "Мужской" && userAge >= 9 && userAge <= 15);
-    const okFemale = (userGender === "Женский" && userAge >= 8 && userAge <= 14);
 
-    if (!okMale && !okFemale) {
-      msg.textContent = "К сожалению, методика откалибрована только для мужчин 9–15 лет и женщин 8–14 лет.";
-      return;
-    }
     document.getElementById("gate-screen").classList.add("hidden");
     document.getElementById("test-screen").classList.remove("hidden");
     renderTest();
   }
-
+  
   function renderTest() {
     let html = `<div class="note"><b>Инструкция:</b><br>Шкалы 1–6, 8, 9: от 1 (совсем не про меня) до 5 (точно про меня).<br>Шкалы 7 и 10: от 0 (никогда) до 4 (всегда).</div>`;
     questions.forEach((q, i) => {
