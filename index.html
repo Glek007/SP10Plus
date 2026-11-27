@@ -129,30 +129,57 @@
     renderTest();
   }
   
-  function renderTest() {
-    let html = `<div class="note"><b>Инструкция:</b><br>Шкалы 1, 3, 5, 6: от 1 (совсем не про меня) до 5 (точно про меня).<br>Шкалы 7 и 10: от 0 (никогда) до 4 (всегда).</div>`;
-    questions.forEach((q, i) => {
-      const min = (q.s === 7 || q.s === 10) ? 0 : 1;
-      const max = (q.s === 7 || q.s === 10) ? 4 : 5;
-      html += `<div class="q-card"><div class="q-title">${i + 1}. ${q.t}</div><div class="opts">`;
-      for (let v = min; v <= max; v++) {
-        html += `<label><input type="radio" name="q${i}" value="${v}">${v}</label>`;
-      }
-      html += `</div></div>`;
-    });
+function renderTest() {
+  let html = `
+    <div class="note">
+      <b>Часть 1. Оцените, насколько эти утверждения про вас:</b><br>
+      <b>1</b> — совсем не про меня<br>
+      <b>2</b> — скорее не про меня<br>
+      <b>3</b> — наполовину про меня<br>
+      <b>4</b> — скорее про меня<br>
+      <b>5</b> — точно про меня
+    </div>`;
 
-    html += `<h3>Ситуационные вопросы</h3>`;
-    sitQuestions.forEach((sq, i) => {
-      html += `<div class="q-card"><div class="q-title">${sq.t}</div>`;
-      sq.opts.forEach((opt, idx) => {
-        html += `<div style="margin:6px 0;"><label><input type="radio" name="s${i}" value="${idx}"> ${opt}</label></div>`;
-      });
-      html += `</div>`;
-    });
+  questions.forEach((q, i) => {
+    if (i === 24) {
+      html += `
+        <div class="note" style="margin-top: 24px; border-left: 4px solid #2ea44f;">
+          <b>Часть 2. Как часто вы испытываете эти состояния (в том числе за последний месяц):</b><br>
+          <b>0</b> — никогда<br>
+          <b>1</b> — редко<br>
+          <b>2</b> — иногда<br>
+          <b>3</b> — часто<br>
+          <b>4</b> — всегда / постоянно
+        </div>`;
+    }
 
-    html += `<button type="button" onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
-    document.getElementById("test-screen").innerHTML = html;
-  }
+    const min = (q.s === 7 || q.s === 10) ? 0 : 1;
+    const max = (q.s === 7 || q.s === 10) ? 4 : 5;
+    html += `<div class="q-card"><div class="q-title">${i + 1}. ${q.t}</div><div class="opts">`;
+    for (let v = min; v <= max; v++) {
+      html += `<label><input type="radio" name="q${i}" value="${v}">${v}</label>`;
+    }
+    html += `</div></div>`;
+  });
+
+  html += `
+    <div class="note" style="margin-top: 24px;">
+      <b>Часть 3. Ситуационные вопросы</b><br>
+      Выберите вариант, который ближе всего к вашей реальной реакции.
+    </div>`;
+
+  sitQuestions.forEach((sq, i) => {
+    html += `<div class="q-card"><div class="q-title">${sq.t}</div>`;
+    sq.opts.forEach((opt, idx) => {
+      html += `<div style="margin:6px 0;"><label><input type="radio" name="s${i}" value="${idx}"> ${opt}</label></div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<button type="button" onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
+  document.getElementById("test-screen").innerHTML = html;
+}
+
     let finalData = {};
 
   function finishTest() {
@@ -215,16 +242,26 @@
     const inTarget = okT && okN && okP && okS && okBase;
 
     let verdictHtml = "<h2>ВЕРДИКТ ПРОГРАММЫ</h2>";
-    if (!inTarget) {
-      verdictHtml += `<p class="err">❌ ВЫ НЕ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ.</p>
-        <p>Ваш профиль показывает, что поведенческий протокол сам по себе не даст нужного эффекта:</p><ul>`;
-      if (!okT) verdictHtml += `<li>Тревожность слишком высокая (${trevoga}). Нужно снижать.</li>`;
-      if (!okN) verdictHtml += `<li>Нейротизм слишком высокий (${neuro}). Нужна работа с эмоциями.</li>`;
-      if (!okP) verdictHtml += `<li>Способность к привязанности низкая (${privyaz}). Нужна терапия.</li>`;
-      if (!okS) verdictHtml += `<li>Текущий стресс высокий (${stress}). Сначала антистресс.</li>`;
-      if (!okBase) verdictHtml += `<li>Недостаточно выражена базовая эмпатия и доброжелательность.</li>`;
-      verdictHtml += `</ul><p><b>Рекомендация:</b> обратитесь к специалисту.</p>`;
-    } else {
+  if (!inTarget) {
+    verdictHtml += `
+      <div class="note" style="border-left: 4px solid #f59e0b;">
+        <p style="font-size: 16px; font-weight: bold; color: #fbbf24; margin-top: 0;">
+          Вы не входите в целевую группу этой программы
+        </p>
+        <p><b>Важно: это не хорошо и не плохо.</b> Такой результат не говорит о том, что с вами что-то не так — просто у каждого человека свой темперамент и текущее состояние. Поведенческий протокол из этой программы рассчитан на очень узкий профиль, и в вашем случае он сейчас просто не даст нужного эффекта.</p>
+        <p>Что именно вышло за рамки критериев программы:</p>
+        <ul>`;
+    if (!okT) verdictHtml += `<li>Повышенный уровень социальной тревожности (${trevoga}).</li>`;
+    if (!okN) verdictHtml += `<li>Высокая эмоциональная чувствительность / нейротизм (${neuro}).</li>`;
+    if (!okP) verdictHtml += `<li>Осторожность в сближении с людьми (шкала привязанности: ${privyaz}).</li>`;
+    if (!okS) verdictHtml += `<li>Высокий уровень текущего стресса (${stress}) — сейчас организму важнее базовый отдых.</li>`;
+    if (!okBase) verdictHtml += `<li>Более сдержанный, рациональный подход к людям (базовая эмпатия и доброжелательность ниже порога программы).</li>`;
+    verdictHtml += `
+        </ul>
+        <p style="margin-bottom: 0;">Если какие-то из этих пунктов вызывают у вас дискомфорт в жизни, с ними можно бережно поработать в своём темпе или обсудить со специалистом.</p>
+      </div>`;
+  } else {
+    
       verdictHtml += `<p class="ok">✅ ВЫ ВХОДИТЕ В ЦЕЛЕВУЮ ГРУППУ!</p>
         <p>У вас есть природная основа для эффекта.</p>
         <div class="note"><h3>ПРОТОКОЛ УЛУЧШЕНИЯ РАБОТЫ МОЗГА (30 дней)</h3>
