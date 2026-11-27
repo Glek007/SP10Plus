@@ -217,6 +217,7 @@ function renderTest() {
     const res = document.getElementById("result-screen");
     res.classList.remove("hidden");
     window.scrollTo(0, 0);
+    localStorage.setItem("sp10_finished", "1");
     
     const names = new Array(
       "", "Доброжелательность", "Экстраверсия", "Нейротизм",
@@ -312,7 +313,9 @@ function renderTest() {
       <button type="button" id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
       <div id="fb-done"></div>`;
 
-  res.innerHTML = scoresHtml + verdictHtml + shareBlockHtml + formHtml;
+const resetBtnHtml = `<button type="button" style="background:#444; margin-top:16px;" onclick="resetTest()">🔄 Пройти тест заново</button>`;
+res.innerHTML = scoresHtml + verdictHtml + shareBlockHtml + formHtml + resetBtnHtml;
+
   }
 
   function sendFeedback() {
@@ -433,7 +436,45 @@ function shareSocial(net) {
     : tgBase + url + "&text=" + text;
   window.open(link, "_blank");
 }
+function saveProgress() {
+  const ans = {};
+  document.querySelectorAll('#test-screen input[type="radio"]:checked').forEach(el => {
+    ans[el.name] = el.value;
+  });
+  localStorage.setItem("sp10_answers", JSON.stringify(ans));
+}
 
+function resetTest() {
+  localStorage.removeItem("sp10_gender");
+  localStorage.removeItem("sp10_age");
+  localStorage.removeItem("sp10_started");
+  localStorage.removeItem("sp10_answers");
+  localStorage.removeItem("sp10_finished");
+  location.reload();
+}
+
+(function restoreProgress() {
+  const g = localStorage.getItem("sp10_gender");
+  const a = localStorage.getItem("sp10_age");
+  if (g) document.getElementById("user-gender").value = g;
+  if (a) document.getElementById("user-age").value = a;
+  if (localStorage.getItem("sp10_started") === "1" && g && a) {
+    userGender = g;
+    userAge = parseInt(a, 10);
+    document.getElementById("gate-screen").classList.add("hidden");
+    document.getElementById("test-screen").classList.remove("hidden");
+    renderTest();
+    const ans = JSON.parse(localStorage.getItem("sp10_answers") || "{}");
+    for (const [name, val] of Object.entries(ans)) {
+      const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+      if (radio) radio.checked = true;
+    }
+    if (localStorage.getItem("sp10_finished") === "1") {
+      finishTest();
+    }
+  }
+})();
+  
 </script>
 </body>
 </html>
