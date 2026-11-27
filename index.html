@@ -126,6 +126,10 @@
 
     document.getElementById("gate-screen").classList.add("hidden");
     document.getElementById("test-screen").classList.remove("hidden");
+      localStorage.setItem("sp10_gender", userGender);
+  localStorage.setItem("sp10_age", userAge);
+  localStorage.setItem("sp10_started", "1");
+    
     renderTest();
   }
   
