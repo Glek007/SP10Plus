@@ -389,8 +389,8 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
 
 async function shareResult() {
   const shareText = getShareText();
-  const shareUrl = "https://github.io";
-
+  const shareUrl = window.location.href;
+  
   if (navigator.share) {
     try {
       await navigator.share({
