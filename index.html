@@ -299,8 +299,6 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
       </select>
       <label>Ваш город:</label>
       <input type="text" id="fb-city" placeholder="Например: Москва">
-      <label>Часовой пояс:</label>
-      <select id="fb-tz">
       <label>Комментарий (впечатления, что совпало, а что нет):</label>
       <textarea id="fb-comment" rows="3" placeholder="Напишите пару слов..."></textarea>
       <button type="button" id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
@@ -341,7 +339,7 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
         btn.classList.add("hidden");
         let doneHtml = `<p class="ok">Спасибо! Ваш отзыв и статистика отправлены.</p>`;
         if (finalData.inTarget) {
-          doneHtml += `<a class="tg-btn" href="${TG_CHAT_URL}" target="_blank">Перейти в закрытый чат ВКонтакте протокола</a>`;
+          doneHtml += `<a class="tg-btn" href="${VK_CHAT_URL}" target="_blank">Перейти в закрытый чат ВКонтакте протокола</a>`;
         }
         document.getElementById("fb-done").innerHTML = doneHtml;
       } else {
