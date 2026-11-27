@@ -298,12 +298,13 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
   const shareBlockHtml = `
     <div style="margin-top: 16px;">
       <button type="button" id="share-btn" style="background:#2ea44f;" onclick="shareResult()">📤 Поделиться результатом</button>
-      <div style="display: flex; gap: 8px; margin-top: 8px;">
-        <button type="button" style="background:#0077ff; margin-top:0;" onclick="shareSocial('vk')">ВКонтакте</button>
-        <button type="button" style="background:#24A1DE; margin-top:0;" onclick="shareSocial('tg')">Telegram</button>
+      <div style="display: flex; gap: 6px; margin-top: 8px;">
+        <button type="button" style="background:#0077ff; margin-top:0; padding:12px 6px; font-size:14px;" onclick="shareSocial('vk')">ВКонтакте</button>
+        <button type="button" style="background:#24A1DE; margin-top:0; padding:12px 6px; font-size:14px;" onclick="shareSocial('tg')">Telegram</button>
+        <button type="button" id="copy-btn" style="background:#6b7280; margin-top:0; padding:12px 6px; font-size:14px;" onclick="copyResultBtn()">📋 Копировать</button>
       </div>
     </div>`;
-    
+
     const formHtml = `<hr style="border-color:#333; margin:20px 0;">
       <h3>Обратная связь по тесту (анонимно)</h3>
       <label>Насколько точным оказался результат?</label>
