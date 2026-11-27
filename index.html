@@ -182,6 +182,8 @@ function renderTest() {
 
   html += `<button type="button" onclick="finishTest()">Узнать результат</button><div id="test-err" class="err"></div>`;
   document.getElementById("test-screen").innerHTML = html;
+    document.getElementById("test-screen").onchange = saveProgress;
+  
 }
 
     let finalData = {};
