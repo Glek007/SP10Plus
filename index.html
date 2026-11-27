@@ -107,20 +107,7 @@
     {t:"Я чувствовал, что не справляюсь.",s:10,r:0},
     {t:"Я чувствовал усталость без причины.",s:10,r:0}
   );
-
-const lieQuestions = new Array(
-  "Л1. Я никогда не опаздываю.",
-  "Л2. Я никогда никого не осуждал.",
-  "Л3. Я всегда говорю только правду.",
-  "Л4. Я никогда не раздражался на близких.",
-  "Л5. Я всегда выполняю обещания.",
-  "Л6. Я сохраняю полное спокойствие даже в самых напряжённых ситуациях.",
-  "Л7. В моих отношениях с близкими практически не бывает обид и недопонимания.",
-  "Л8. Я способен искренне понять и принять любого человека.",
-  "Л9. Я всегда легко контролирую свои желания и не поддаюсь порывам.",
-  "Л10. Я чувствую себя абсолютно уверенно в любой незнакомой компании."
-);
-  
+ 
   const sitQuestions = new Array(
     {t:"С1. Коллега занял вашу идею и выдал за свою. Что вы сделаете?",opts:new Array("1) Промолчу","2) Скажу ему наедине","3) Скажу при всех","4) Пожалуюсь начальнику"),sc:new Array(1,3,2,1),s:1},
     {t:"С2. Друг просит денег в долг, а вы знаете, что он не вернёт.",opts:new Array("1) Дам","2) Откажу","3) Дам половину","4) Скажу, что нет денег"),sc:new Array(3,1,2,1),s:1},
@@ -154,14 +141,6 @@ const lieQuestions = new Array(
       html += `</div></div>`;
     });
 
-html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
-    lieQuestions.forEach((lq, i) => {
-      html += `<div class="q-card"><div class="q-title">${lq}</div><div class="opts">
-        <label><input type="radio" name="l${i}" value="1">1 (Да)</label>
-        <label><input type="radio" name="l${i}" value="0">0 (Нет)</label>
-      </div></div>`;
-    });
-
     html += `<h3>Ситуационные вопросы</h3>`;
     sitQuestions.forEach((sq, i) => {
       html += `<div class="q-card"><div class="q-title">${sq.t}</div>`;
@@ -193,13 +172,6 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
       sums.set(q.s, sums.get(q.s) + add);
     }
 
-    let lieYes = 0;
-    for (let i = 0; i < lieQuestions.length; i++) {
-      const el = document.querySelector(`input[name="l${i}"]:checked`);
-      if (!el) { err.textContent = `Ответьте на вопрос достоверности Л${i + 1}`; return; }
-      if (el.value === "1") lieYes++;
-    }
-
     for (let i = 0; i < sitQuestions.length; i++) {
       const el = document.querySelector(`input[name="s${i}"]:checked`);
       if (!el) { err.textContent = `Ответьте на ситуационный вопрос С${i + 1}`; return; }
@@ -212,13 +184,6 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
     const res = document.getElementById("result-screen");
     res.classList.remove("hidden");
     window.scrollTo(0, 0);
-
-  if (lieYes >= 5) {
-    res.innerHTML = `<h2 class="err">⚠ РЕЗУЛЬТАТ НЕДОСТОВЕРЕН (шкала 11: ${lieYes} из ${lieQuestions.length})</h2>
-    <p>Рекомендации не выдаются. Пройдите тест заново честно.</p>
-    <button type="button" onclick="location.reload()">Пройти заново</button>`;
-    return;
-  }
     
     const names = new Array(
       "", "Доброжелательность", "Экстраверсия", "Нейротизм",
