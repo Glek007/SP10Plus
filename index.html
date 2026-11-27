@@ -66,7 +66,7 @@
   </div>
 </div>
 <script>
-  const TG_CHAT_URL = "https://vk.me/join/lvtvkBddnYmCGh0tOwxxre_B3hK5CcwB1BA=";
+  const VK_CHAT_URL = "https://vk.me/join/lvtvkBddnYmCGh0tOwxxre_B3hK5CcwB1BA=";
   const ACCESS_KEY = "55d80f50-88d8-4350-a74f-662de740f2f1";
   let userGender = "", userAge = 0;
 
@@ -411,6 +411,38 @@ async function shareResult() {
     btn.style.background = "#16a34a";
   });
 }
+  function copyResultBtn() {
+  const fullText = getShareText() + "\nПройти тест: " + window.location.href;
+  const btn = document.getElementById("copy-btn");
+
+  const onSuccess = () => {
+    btn.textContent = "✅ Скопировано!";
+    btn.style.background = "#16a34a";
+  };
+
+  const fallbackCopy = () => {
+    const area = document.createElement("textarea");
+    area.value = fullText;
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+    try {
+      document.execCommand("copy");
+      onSuccess();
+    } catch (e) {
+      btn.textContent = "❌ Не удалось скопировать";
+    }
+    document.body.removeChild(area);
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(fullText).then(onSuccess).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+ }
 
 function shareSocial(net) {
   const url = encodeURIComponent(window.location.href);
