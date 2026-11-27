@@ -295,7 +295,15 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
     }
 
     finalData = { target: inTarget ? "ЦЕЛЕВАЯ" : "НЕ ЦЕЛЕВАЯ", inTarget, scores: scoresText };
-
+  const shareBlockHtml = `
+    <div style="margin-top: 16px;">
+      <button type="button" id="share-btn" style="background:#2ea44f;" onclick="shareResult()">📤 Поделиться результатом</button>
+      <div style="display: flex; gap: 8px; margin-top: 8px;">
+        <button type="button" style="background:#0077ff; margin-top:0;" onclick="shareSocial('vk')">ВКонтакте</button>
+        <button type="button" style="background:#24A1DE; margin-top:0;" onclick="shareSocial('tg')">Telegram</button>
+      </div>
+    </div>`;
+    
     const formHtml = `<hr style="border-color:#333; margin:20px 0;">
       <h3>Обратная связь по тесту (анонимно)</h3>
       <label>Насколько точным оказался результат?</label>
@@ -325,7 +333,7 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
       <button type="button" id="send-btn" onclick="sendFeedback()">Отправить отзыв</button>
       <div id="fb-done"></div>`;
 
-    res.innerHTML = scoresHtml + verdictHtml + formHtml;
+  res.innerHTML = scoresHtml + verdictHtml + shareBlockHtml + formHtml;
   }
 
   function sendFeedback() {
@@ -373,6 +381,48 @@ html += `<h3>Шкала 11 (1 — Да, 0 — Нет)</h3>`;
       btn.textContent = "Ошибка сети. Попробовать ещё раз";
     });
   }
+  function getShareText() {
+  const statusLine = finalData.inTarget ? "✅ Я вхожу в целевую группу!" : "❌ Я не вошёл в целевую группу.";
+  const formattedScores = finalData.scores.trim().replace(/; /g, "\n• ").replace(/;$/, "");
+  return `Мой результат в тесте СП-10+:\n${statusLine}\n\n• ${formattedScores}\n\nА что выйдет у тебя?`;
+}
+
+async function shareResult() {
+  const shareText = getShareText();
+  const shareUrl = "https://github.io";
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Мой результат в тесте СП-10+",
+        text: shareText,
+        url: shareUrl
+      });
+      return;
+    } catch (err) {
+      return;
+    }
+  }
+
+  navigator.clipboard.writeText(`${shareText}\nПройти тест: ${shareUrl}`).then(() => {
+    const btn = document.getElementById("share-btn");
+    btn.textContent = "✅ Скопировано! Вставьте в чат друзьям";
+    btn.style.background = "#16a34a";
+  });
+}
+
+function shareSocial(net) {
+  const url = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent(getShareText());
+  const title = encodeURIComponent("Мой результат в тесте СП-10+");
+  const vkBase = "https://" + "vk." + "com/share.php?url=";
+  const tgBase = "https://" + "t.me/share/url?url=";
+  const link = net === "vk"
+    ? vkBase + url + "&title=" + title + "&comment=" + text
+    : tgBase + url + "&text=" + text;
+  window.open(link, "_blank");
+}
+
 </script>
 </body>
 </html>
