@@ -171,7 +171,7 @@ function renderTest() {
   sitQuestions.forEach((sq, i) => {
     html += `<div class="q-card"><div class="q-title">${sq.t}</div>`;
     sq.opts.forEach((opt, idx) => {
-      html += `<div style="margin:6px 0;"><label><input type="radio" name="s${i}" value="${idx}"> ${opt}</label></div>`;
+      html += `<label style="display:flex; align-items:center; gap:10px; background:#333; padding:10px 12px; border-radius:6px; margin:8px 0; cursor:pointer;"><input type="radio" name="s${i}" value="${idx}" style="width:auto; margin:0;"><span>${opt}</span></label>`;
     });
     html += `</div>`;
   });
