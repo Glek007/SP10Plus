@@ -259,7 +259,7 @@ function startMap() {
   mapEl.style.borderRadius = "12px";
 
   mapInstance = L.map("map").setView([55.75, 45.0], 3);
-  const tileUrl = "https://{s}.basemaps." + "cartocdn." + "com/dark_all/{z}/{x}/{y}{r}.png";
+  const tileUrl = "https://tile." + "openstreetmap." + "org/{z}/{x}/{y}.png";
   L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(mapInstance);
   markersLayer = L.layerGroup().addTo(mapInstance);
 
