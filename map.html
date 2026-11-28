@@ -175,42 +175,202 @@
   function renderMap() {
     markersLayer.clearLayers();
     const activeScale = document.getElementById("filterScaleColor").value;
-    const scaleMeta = SCALES.find(s => s.key === activeScale) || SCALES;
-    const groups = {};
+const SCRIPT_URL = "https://" + "script.google." + "com/macros/s/" + "AKfycbwR3QQHD9SSKZhtseOSkVlq83mOXJ1ZrP1dDBvC6RxlXwoKXIySEkvYbT7cHIvrYGX7/exec";
 
-    filteredData.forEach(row => {
-      const lat = parseFloat(row["Широта"]);
-      const lng = parseFloat(row["Долгота"]);
-      if (isNaN(lat) || isNaN(lng)) return;
-      const key = `${lat.toFixed(2)}_${lng.toFixed(2)}`;
-      if (!groups[key]) groups[key] = { city: row["Город"] || "Регион", lat, lng, rows: [] };
-      groups[key].rows.push(row);
+const CITIES = {
+  "москва": { lat: 55.7558, lng: 37.6173 },
+  "санкт-петербург": { lat: 59.9343, lng: 30.3351 },
+  "питер": { lat: 59.9343, lng: 30.3351 },
+  "новосибирск": { lat: 55.0084, lng: 82.9357 },
+  "екатеринбург": { lat: 56.8389, lng: 60.6057 },
+  "казань": { lat: 55.7961, lng: 49.1064 },
+  "нижний новгород": { lat: 56.3269, lng: 44.0059 },
+  "челябинск": { lat: 55.1644, lng: 61.4368 },
+  "самара": { lat: 53.1959, lng: 50.1002 },
+  "омск": { lat: 54.9885, lng: 73.3242 },
+  "ростов-на-дону": { lat: 47.2357, lng: 39.7015 },
+  "ростов": { lat: 47.2357, lng: 39.7015 },
+  "уфа": { lat: 54.7388, lng: 55.9721 },
+  "красноярск": { lat: 56.0153, lng: 92.8932 },
+  "воронеж": { lat: 51.6755, lng: 39.2089 },
+  "пермь": { lat: 58.0105, lng: 56.2502 },
+  "волгоград": { lat: 48.7080, lng: 44.5133 },
+  "краснодар": { lat: 45.0355, lng: 38.9753 },
+  "саратов": { lat: 51.5336, lng: 46.0343 },
+  "тюмень": { lat: 57.1522, lng: 65.5272 },
+  "минск": { lat: 53.9006, lng: 27.5590 },
+  "алматы": { lat: 43.2220, lng: 76.8512 },
+  "астана": { lat: 51.1605, lng: 71.4704 },
+  "ташкент": { lat: 41.2995, lng: 69.2401 },
+  "киев": { lat: 50.4501, lng: 30.5234 }
+};
+
+const TZ_FALLBACK = {
+  "Europe/Moscow": { lat: 55.75, lng: 37.61 },
+  "Europe/Samara": { lat: 53.19, lng: 50.10 },
+  "Asia/Yekaterinburg": { lat: 56.83, lng: 60.60 },
+  "Asia/Omsk": { lat: 54.98, lng: 73.32 },
+  "Asia/Novosibirsk": { lat: 55.00, lng: 82.93 },
+  "Asia/Krasnoyarsk": { lat: 56.01, lng: 92.89 },
+  "Asia/Irkutsk": { lat: 52.28, lng: 104.28 },
+  "Asia/Vladivostok": { lat: 43.11, lng: 131.88 },
+  "Europe/Minsk": { lat: 53.90, lng: 27.55 },
+  "Asia/Almaty": { lat: 43.22, lng: 76.85 }
+};
+
+let allRows = [];
+let mapInstance = null;
+let markersLayer = null;
+
+function setStatus(text) {
+  const els = document.querySelectorAll("p, div");
+  for (let i = 0; i < els.length; i++) {
+    const el = els.item(i);
+    if (el.children.length === 0 && el.textContent.indexOf("Загрузка") !== -1) {
+      el.textContent = text;
+      return;
+    }
+  }
+  const sub = document.querySelector("p");
+  if (sub) sub.textContent = text;
+}
+
+function getCoords(row) {
+  const rawCity = String(row["Город"] || "").trim().toLowerCase();
+  if (CITIES[rawCity]) return CITIES[rawCity];
+  for (const key in CITIES) {
+    if (rawCity && rawCity.indexOf(key) !== -1) return CITIES[key];
+  }
+  const tz = String(row["Часовой пояс"] || "").trim();
+  if (TZ_FALLBACK[tz]) return TZ_FALLBACK[tz];
+  return { lat: 55.75, lng: 37.61 };
+}
+
+function getColor(val, maxVal) {
+  const ratio = Math.min(1, Math.max(0, Number(val || 0) / maxVal));
+  if (ratio < 0.4) return "#22c55e";
+  if (ratio < 0.7) return "#eab308";
+  return "#ef4444";
+}
+
+function renderMarkers() {
+  if (!mapInstance || !markersLayer) return;
+  markersLayer.clearLayers();
+
+  const selects = document.querySelectorAll("select");
+  const s0 = selects.item(0);
+  const s1 = selects.item(1);
+  const s2 = selects.item(2);
+
+  const genderFilter = s0 ? s0.value : "";
+  const ageFilter = s1 ? s1.value : "";
+  const scaleName = s2 ? s2.options.item(s2.selectedIndex).text : "Тревожность";
+
+  const maxMap = {
+    "Тревожность": 24,
+    "Стресс": 20,
+    "Нейротизм": 30,
+    "Доброжелательность": 36,
+    "Эмпатия": 28,
+    "Привязанность": 30
+  };
+  const maxVal = maxMap[scaleName] || 25;
+
+  let shown = 0;
+  allRows.forEach(function(row, idx) {
+    const g = String(row["Пол"] || "");
+    const age = Number(row["Возраст"] || 0);
+
+    if (genderFilter && genderFilter !== "all" && genderFilter !== "Все участники" && g !== genderFilter) return;
+    if (ageFilter === "under18" && age >= 18) return;
+    if (ageFilter === "18-25" && (age < 18 || age > 25)) return;
+    if (ageFilter === "26-40" && (age < 26 || age > 40)) return;
+    if (ageFilter === "40plus" && age <= 40) return;
+
+    const base = getCoords(row);
+    const jitterLat = ((idx * 37) % 10 - 5) * 0.02;
+    const jitterLng = ((idx * 53) % 10 - 5) * 0.02;
+    const score = row[scaleName] !== undefined ? row[scaleName] : row["Тревожность"];
+    const color = getColor(score, maxVal);
+
+    const marker = L.circleMarker([base.lat + jitterLat, base.lng + jitterLng], {
+      radius: 9,
+      fillColor: color,
+      color: "#ffffff",
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.85
     });
 
-    Object.values(groups).forEach(g => {
-      const avgs = calcAverages(g.rows);
-      const radius = Math.min(26, 8 + g.rows.length * 2);
-      const circle = L.circleMarker([g.lat, g.lng], {
-        radius, fillColor: scaleMeta.color, color: "#ffffff", weight: 1.5, opacity: 0.9, fillOpacity: 0.75
-      });
-      const tableRows = SCALES.map(s => `<tr><td>${s.key}</td><td>${avgs[s.key].avg} б. (${avgs[s.key].pct}%)</td></tr>`).join("");
-      circle.bindPopup(`<div style="min-width:210px;"><strong style="font-size:1rem;">${g.city}</strong><br/><span style="color:#94a3b8; font-size:0.8rem;">Участников: ${g.rows.length}</span><table class="popup-table">${tableRows}</table></div>`);
-      circle.addTo(markersLayer);
+    marker.bindPopup(
+      "<b>" + (row["Город"] || "Город не указан") + "</b> (" + g + ", " + age + " лет)<br>" +
+      "Статус: <b>" + (row["Статус"] || "-") + "</b><br>" +
+      "Доброжелательность: " + (row["Доброжелательность"] || 0) + "<br>" +
+      "Нейротизм: " + (row["Нейротизм"] || 0) + "<br>" +
+      "Эмпатия: " + (row["Эмпатия"] || 0) + "<br>" +
+      "Привязанность: " + (row["Привязанность"] || 0) + "<br>" +
+      "Тревожность: " + (row["Тревожность"] || 0) + "<br>" +
+      "Стресс: " + (row["Стресс"] || 0)
+    );
+    marker.addTo(markersLayer);
+    shown++;
+  });
+
+  setStatus("На карте показаны точки: " + shown + " из " + allRows.length + " анкет");
+}
+
+window.downloadCSV = function() {
+  if (!allRows.length) {
+    alert("Нет данных для выгрузки");
+    return;
+  }
+  const firstRow = allRows.slice(0, 1).pop();
+  const keys = Object.keys(firstRow);
+  const lines = [keys.join(";")];
+  allRows.forEach(function(r) {
+    lines.push(keys.map(function(k) { return '"' + String(r[k] || "").replace(/"/g, '""') + '"'; }).join(";"));
+  });
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "sp10plus_data.csv";
+  a.click();
+};
+
+function startMap() {
+  const mapEl = document.getElementById("map");
+  if (!mapEl) return;
+  mapEl.style.height = "420px";
+  mapEl.style.borderRadius = "12px";
+
+  mapInstance = L.map("map").setView([55.75, 45.0], 3);
+  const tileUrl = "https://{s}.basemaps." + "cartocdn." + "com/dark_all/{z}/{x}/{y}{r}.png";
+  L.tileLayer(tileUrl, { maxZoom: 18 }).addTo(mapInstance);
+  markersLayer = L.layerGroup().addTo(mapInstance);
+
+  document.querySelectorAll("select").forEach(function(sel) {
+    sel.addEventListener("change", renderMarkers);
+  });
+
+  fetch(SCRIPT_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allRows = Array.isArray(data) ? data : [];
+      renderMarkers();
+    })
+    .catch(function() {
+      setStatus("Не удалось загрузить данные из таблицы");
     });
-  }
+}
 
-  function downloadCSV() {
-    if (!filteredData.length) return alert("Нет данных для выгрузки");
-    const headers = Object.keys(filteredData);
-    const csv = [headers.join(";"), ...filteredData.map(r => headers.map(h => `"${String(r[h] ?? "").replace(/"/g, '""')}"`).join(";"))].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "sp10plus_research_data.csv";
-    a.click();
-  }
+(function loadLeaflet() {
+  const css = document.createElement("link");
+  css.rel = "stylesheet";
+  css.href = "https://" + "unpkg." + "com/leaflet@1.9.4/dist/leaflet.css";
+  document.head.appendChild(css);
 
-  loadData();
-</script>
-</body>
-</html>
+  const scr = document.createElement("script");
+  scr.src = "https://" + "unpkg." + "com/leaflet@1.9.4/dist/leaflet.js";
+  scr.onload = startMap;
+  document.head.appendChild(scr);
+})();
