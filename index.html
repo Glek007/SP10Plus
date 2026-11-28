@@ -322,13 +322,64 @@ const resetBtnHtml = `<button type="button" style="background:#444; margin-top:1
 res.innerHTML = scoresHtml + verdictHtml + shareBlockHtml + formHtml + resetBtnHtml;
 
   }
+const CITY_REGIONS = {
+  "Москва": "Москва",
+  "Санкт-Петербург": "Санкт-Петербург",
+  "Новосибирск": "Новосибирская область",
+  "Екатеринбург": "Свердловская область",
+  "Казань": "Республика Татарстан",
+  "Нижний Новгород": "Нижегородская область",
+  "Челябинск": "Челябинская область",
+  "Самара": "Самарская область",
+  "Омск": "Омская область",
+  "Ростов-на-Дону": "Ростовская область",
+  "Уфа": "Республика Башкортостан",
+  "Красноярск": "Красноярский край",
+  "Воронеж": "Воронежская область",
+  "Пермь": "Пермский край",
+  "Волгоград": "Волгоградская область",
+  "Краснодар": "Краснодарский край",
+  "Саратов": "Саратовская область",
+  "Тюмень": "Тюменская область",
+  "Тольятти": "Самарская область",
+  "Ижевск": "Удмуртская Республика",
+  "Барнаул": "Алтайский край",
+  "Ульяновск": "Ульяновская область",
+  "Иркутск": "Иркутская область",
+  "Хабаровск": "Хабаровский край",
+  "Ярославль": "Ярославская область",
+  "Владивосток": "Приморский край",
+  "Махачкала": "Республика Дагестан",
+  "Томск": "Томская область",
+  "Оренбург": "Оренбургская область",
+  "Кемерово": "Кемеровская область",
+  "Сочи": "Краснодарский край",
+  "Минск": "Минская область",
+  "Алматы": "Алматы",
+  "Астана": "Астана",
+  "Ташкент": "Ташкент"
+};
+
+document.addEventListener("focusin", function(e) {
+  if (e.target && e.target.id === "fb-city" && !document.getElementById("citiesList")) {
+    const dl = document.createElement("datalist");
+    dl.id = "citiesList";
+    Object.keys(CITY_REGIONS).forEach(function(c) {
+      const opt = document.createElement("option");
+      opt.value = c;
+      dl.appendChild(opt);
+    });
+    document.body.appendChild(dl);
+    e.target.setAttribute("list", "citiesList");
+  }
+});
 
   function sendFeedback() {
     const btn = document.getElementById("send-btn");
     const rating = document.getElementById("fb-rating").value;
-    const city = document.getElementById("fb-city").value.trim() || "Не указан";
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Не определён";
-    const comment = document.getElementById("fb-comment").value.trim() || "Без комментария";
+  const rawCity = document.getElementById("fb-city").value.trim();
+  const autoRegion = CITY_REGIONS[rawCity] || "";
+  const city = autoRegion && autoRegion !== rawCity ? rawCity + " (" + autoRegion + ")" : rawCity;
 
     btn.disabled = true;
     btn.textContent = "Отправка...";
