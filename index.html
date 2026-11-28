@@ -332,7 +332,27 @@ res.innerHTML = scoresHtml + verdictHtml + shareBlockHtml + formHtml + resetBtnH
 
     btn.disabled = true;
     btn.textContent = "Отправка...";
-
+      const GS_URL = "https://" + "script.google." + "com/macros/s/" + "AKfycbyPtX5uGuomU_l0EzbK629n-lv8D-MzrT2HeiKq6z6X-X7cd9b_7Ry6kkrggzoXrPIPoA/exec";
+  fetch(GS_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      target: finalData.target,
+      gender: userGender,
+      age: userAge,
+      city: city,
+      tz: tz,
+      dobro: finalData.dobro,
+      neuro: finalData.neuro,
+      emocEmp: finalData.emocEmp,
+      privyaz: finalData.privyaz,
+      trevoga: finalData.trevoga,
+      stress: finalData.stress,
+      rating: rating
+    })
+  });
+    
     fetch("https://api.web3forms.com/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
